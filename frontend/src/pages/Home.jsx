@@ -1,18 +1,18 @@
 import Navbar from "../components/Navbar";
 import PromptBox from "../components/PromptBox";
-
-function Home() {
+export default function Home({session, onNavigate, onGenerate, onSignOut}) {
   return (
-    <main className="min-h-screen from-violet-50 to-white px-6 py-6 text-slate-900">
-    <Navbar />
-
-      <section className="mx-auto flex max-w-3xl flex-col items-center py-28 text-center">
-        <h1 className="text-5xl font-bold tracking-tight sm:text-5xl">What will you build today?</h1>
-        <p className="my-4 max-w-xl text-lg text-slate-600">Describe your idea and let Orbit turn it into a working website.</p>
-        <PromptBox />
+    <main className="min-h-screen bg-neutral-950 text-neutral-100">
+      <Navbar session={session} onNavigate={onNavigate} onSignOut={onSignOut} />
+      <section className="mx-auto flex w-full max-w-2xl flex-col items-center px-5 pb-20 pt-28 text-center">
+        <h1 className="mt-5 text-5xl font-bold leading-none tracking-tight sm:text-5xl">
+          What will you build today?
+        </h1>
+        <p className="mt-5 text-sm text-neutral-400">
+          Describe your idea and Orbit will turn it into a working website.
+        </p>
+        <PromptBox onGenerate={onGenerate} />
       </section>
     </main>
   );
 }
-
-export default Home;

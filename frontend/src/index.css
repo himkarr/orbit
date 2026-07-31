@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-body {
-  margin: 0;
-  min-width: 320px;
-  font-family: Arial, sans-serif;
-}
+@theme { --font-sans: "Manrope", Arial, sans-serif; --font-mono: "DM Mono", monospace; }
+
+body { margin: 0; min-width: 320px; background: #090909; }

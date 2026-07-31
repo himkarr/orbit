@@ -1,67 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const API_URL = "http://localhost:3000/api/generate";
-
-function PromptBox() {
+export default function PromptBox({ onGenerate }) {
   const [prompt, setPrompt] = useState("");
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [placeholder, setPlaceholder] = useState("Enter a prompt to generate your website...");
 
-  async function handleSubmit(event) {
+  const placeholders = [
+    "Build a todo app...",
+    "Create a landing page...",
+    "Generate a portfolio site...",
+    "Design a login form...",
+    "Make a weather dashboard..."
+  ];
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % placeholders.length;
+      setPlaceholder(placeholders[index]);
+    }, 3000); // change every 3 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const submit = (event) => {
     event.preventDefault();
-    if (!prompt.trim()) return;
-
-    setIsLoading(true);
-    setError("");
-    setOutput("");
-
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error || "Generation failed.");
-      setOutput(data.output);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+    if (prompt.trim()) onGenerate(prompt.trim());
+  };
 
   return (
-    <div className="w-full max-w-2xl">
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-lg shadow-violet-100">
-        <textarea
-          value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
-          placeholder="Describe the app you want to build..."
-          className="min-h-28 w-full resize-none rounded-xl p-3 text-slate-700 outline-none placeholder:text-slate-400"
-        />
-        <div className="flex items-center justify-between px-2">
-          <span className="text-sm text-slate-400">Build with AI</span>
-          <button
-            type="submit"
-            disabled={!prompt.trim() || isLoading}
-            className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isLoading ? "Generating..." : "Generate ✦"}
-          </button>
-        </div>
-      </form>
-
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-      {output && (
-        <pre className="mt-4 whitespace-pre-wrap rounded-xl bg-slate-900 p-5 text-left text-sm text-slate-100">
-          {output}
-        </pre>
-      )}
-    </div>
+    <form
+      onSubmit={submit}
+      className="mt-9 w-full rounded-lg border border-neutral-800 bg-neutral-900 p-3 text-left shadow-2xl shadow-black/30"
+    >
+      <label className="sr-only" htmlFor="prompt">
+        Describe your website
+      </label>
+      <textarea
+        id="prompt"
+        value={prompt}
+        onChange={(event) => setPrompt(event.target.value)}
+        placeholder={placeholder}
+        className="min-h-28 w-full resize-none bg-transparent p-2 text-sm text-white outline-none"
+      />
+      <div className="flex items-center justify-between border-t border-neutral-800 pt-3">
+        <span className="text-xs text-neutral-500">Ready to build</span>
+        <button
+          disabled={!prompt.trim()}
+          className="rounded-md bg-white px-4 py-2 text-xs font-bold text-black disabled:opacity-40"
+        >
+          Generate
+        </button>
+      </div>
+    </form>
   );
 }
-
-export default PromptBox;
