@@ -185,36 +185,38 @@ Never return comments.
 Never return additional properties.
 `;
 
-const responseFormat = {
-  type: "json_schema",
-  json_schema: {
-    name: "frontend_project",
-    strict: true,
-    schema: {
-      type: "object",
-      properties: {
-        files: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              filename: {
-                type: "string",
-                enum: ["index.html", "style.css", "script.js"],
-              },
-              content: {
-                type: "string",
-              },
-            },
-            required: ["filename", "content"],
-            additionalProperties: false,
-          },
-        },
-      },
-      required: ["files"],
-      additionalProperties: false,
-    },
-  },
-};
+// const responseFormat = {
+//   type: "json_schema",
+//   json_schema: {
+//     name: "frontend_project",
+//     strict: true,
+//     schema: {
+//       type: "object",
+//       properties: {
+//         files: {
+//           type: "array",
+//           items: {
+//             type: "object",
+//             properties: {
+//               filename: {
+//                 type: "string",
+//                 enum: ["index.html", "style.css", "script.js"],
+//               },
+//               content: {
+//                 type: "string",
+//               },
+//             },
+//             required: ["filename", "content"],
+//             additionalProperties: false,
+//           },
+//         },
+//       },
+//       required: ["files"],
+//       additionalProperties: false,
+//     },
+//   },
+// };
+
+const responseFormat = {type: "json_object"};
 
 module.exports = {systemPrompt, responseFormat};

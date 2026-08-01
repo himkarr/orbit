@@ -6,7 +6,15 @@ import {streamGeneration} from "../services/api";
 const fileNames = ["index.html", "style.css", "script.js"];
 
 function getFiles(response) {
-  const generatedFiles = JSON.parse(response).files;
+  const json = response
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/, "")
+    .replace(/\s*```$/, "");
+  const generatedFiles = JSON.parse(json).files;
+
+  if (!Array.isArray(generatedFiles))
+    throw new Error("The response does not contain a files list.");
   const files = Object.fromEntries(
     generatedFiles.map(({filename, content}) => [filename, content]),
   );
@@ -112,13 +120,23 @@ export default function Generator({prompt, session, onNavigate}) {
             >
               Preview
             </button>
+            <button
+              className={`rounded px-3 py-1.5 text-xs ${mode === "response" ? "bg-neutral-700 text-white" : "text-neutral-500"}`}
+              onClick={() => setMode("response")}
+            >
+              AI response
+            </button>
           </div>
         </div>
 
-        {error ? (
-          <div className="rounded-lg border border-neutral-700 bg-neutral-900 p-4 text-sm text-neutral-300">
+        {error && (
+          <div className="mb-4 rounded-lg border border-neutral-700 bg-neutral-900 p-4 text-sm text-neutral-300">
             {error}
           </div>
+        )}
+
+        {mode === "response" ? (
+          <CodeEditor filename="ai-response.json" code={rawCode} streaming={streaming} />
         ) : mode === "code" ? (
           <>
             <div className="mb-3 flex gap-2">
@@ -138,9 +156,9 @@ export default function Generator({prompt, session, onNavigate}) {
               streaming={streaming}
             />
           </>
-        ) : (
+        ) : files ? (
           <Preview files={files} />
-        )}
+        ) : null}
       </div>
     </main>
   );

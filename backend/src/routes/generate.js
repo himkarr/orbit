@@ -28,11 +28,12 @@ router.post("/", protect, async (req, res) => {
   try {
     const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
     const stream = await groq.chat.completions.create({
-      model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      // model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
       messages: buildMessages(prompt),
       response_format: responseFormat,
       temperature: 0.4,
-      max_completion_tokens: 4096,
+      max_completion_tokens: 5000,
       stream: true,
     });
 
@@ -62,6 +63,7 @@ router.post("/", protect, async (req, res) => {
     );
     return res.end();
   } catch (error) {
+    console.error("Generation failed:", error.message);
     res.write(
       `data: ${JSON.stringify({
         type: "error",
