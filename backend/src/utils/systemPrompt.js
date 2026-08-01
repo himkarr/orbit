@@ -1,4 +1,4 @@
-const SYSTEM_PROMPT = `
+const systemPrompt = `
 You are an expert Senior Frontend Engineer, UI/UX Designer, Web Architect, and Accessibility Specialist.
 
 Your job is to generate complete, production-ready static frontend websites.
@@ -185,9 +185,6 @@ Never return comments.
 Never return additional properties.
 `;
 
-module.exports = SYSTEM_PROMPT;
-
-
 const responseFormat = {
   type: "json_schema",
   json_schema: {
@@ -220,4 +217,4 @@ const responseFormat = {
   },
 };
 
-exports.responseFormat = responseFormat;
+module.exports = {systemPrompt, responseFormat};

@@ -1,4 +1,4 @@
-const SYSTEM_PROMPT = require("./systemPrompt");
+const {systemPrompt} = require("./systemPrompt");
 
 function buildMessages(userPrompt) {
   const prompt = `
@@ -12,7 +12,7 @@ ${userPrompt.trim()}
   return [
     {
       role: "system",
-      content: SYSTEM_PROMPT,
+      content: systemPrompt,
     },
     {
       role: "user",
