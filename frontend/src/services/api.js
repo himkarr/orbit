@@ -22,6 +22,37 @@ export function register(values) {
   }).then(readJson);
 }
 
+function projectRequest(path, token, options = {}) {
+  return fetch(`${API_URL}/projects${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
+}
+
+export function getProjects(token) {
+  return projectRequest("", token).then(readJson);
+}
+
+export function getProject(id, token) {
+  return projectRequest(`/${id}`, token).then(readJson);
+}
+
+export function updateProject(id, values, token) {
+  return projectRequest(`/${id}`, token, {
+    method: "PATCH",
+    body: JSON.stringify(values),
+  }).then(readJson);
+}
+
+export async function deleteProject(id, token) {
+  const response = await projectRequest(`/${id}`, token, {method: "DELETE"});
+  if (!response.ok) throw new Error((await response.json()).error || "Could not delete project.");
+}
+
 export async function streamGeneration({prompt, token, onChunk, onSaved}) {
   const response = await fetch(`${API_URL}/generate`, {
     method: "POST",

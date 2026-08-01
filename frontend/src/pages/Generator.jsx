@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import CodeEditor from "../components/CodeEditor";
 import Preview from "../components/Preview";
-import {streamGeneration} from "../services/api";
+import {getProject, streamGeneration} from "../services/api";
 
 const fileNames = ["index.html", "style.css", "script.js"];
 
@@ -25,7 +25,7 @@ function getFiles(response) {
   return files;
 }
 
-export default function Generator({prompt, session, onNavigate}) {
+export default function Generator({prompt, projectId, session, onNavigate}) {
   const [mode, setMode] = useState("code");
   const [rawCode, setRawCode] = useState("");
   const [files, setFiles] = useState(null);
@@ -37,6 +37,22 @@ export default function Generator({prompt, session, onNavigate}) {
   useEffect(() => {
     let cancelled = false;
     let generatedCode = "";
+
+    if (projectId) {
+      getProject(projectId, session.token)
+        .then(({project: savedProject}) => {
+          if (cancelled) return;
+          setProject(savedProject);
+          setRawCode(savedProject.code);
+          setFiles(getFiles(savedProject.code));
+        })
+        .catch((requestError) => !cancelled && setError(requestError.message))
+        .finally(() => !cancelled && setStreaming(false));
+
+      return () => {
+        cancelled = true;
+      };
+    }
 
     streamGeneration({
       prompt,
@@ -63,7 +79,7 @@ export default function Generator({prompt, session, onNavigate}) {
     return () => {
       cancelled = true;
     };
-  }, [prompt, session.token]);
+  }, [prompt, projectId, session.token]);
 
   const displayedCode = files ? files[activeFile] : rawCode;
 
@@ -78,16 +94,16 @@ export default function Generator({prompt, session, onNavigate}) {
             <span className="grid size-6 place-items-center rounded-full border border-white text-[10px]">
               O
             </span>
-            orbit
+            Orbit
           </button>
           <p className="max-w-48 truncate text-xs text-neutral-500">
             {project?.title || "New project"}
           </p>
           <button
             onClick={() => onNavigate("home")}
-            className="rounded-md border border-neutral-700 px-3 py-2 text-xs text-neutral-300"
+            className="rounded-md border border-neutral-700 px-3 py-2 text-xs text-neutral-300 onhover:border-neutral-500 hover:text-white"
           >
-            New prompt
+            Create New
           </button>
         </div>
       </header>
@@ -99,14 +115,20 @@ export default function Generator({prompt, session, onNavigate}) {
               {streaming
                 ? "Building your project..."
                 : project
-                  ? "Saved to your projects"
+                  ? projectId ? "Saved project" : "Saved to your projects"
                   : "Generation complete"}
             </p>
             <p className="mt-1 max-w-xl truncate text-sm text-neutral-300">
-              {prompt}
+              {project?.prompt || prompt}
             </p>
           </div>
           <div className="rounded-md border border-neutral-800 bg-neutral-900 p-1">
+            <button
+              className={`rounded px-3 py-1.5 text-xs ${mode === "response" ? "bg-neutral-700 text-white" : "text-neutral-500"}`}
+              onClick={() => setMode("response")}
+            >
+              LLM Res.
+            </button>
             <button
               className={`rounded px-3 py-1.5 text-xs ${mode === "code" ? "bg-neutral-700 text-white" : "text-neutral-500"}`}
               onClick={() => setMode("code")}
@@ -119,12 +141,6 @@ export default function Generator({prompt, session, onNavigate}) {
               onClick={() => setMode("preview")}
             >
               Preview
-            </button>
-            <button
-              className={`rounded px-3 py-1.5 text-xs ${mode === "response" ? "bg-neutral-700 text-white" : "text-neutral-500"}`}
-              onClick={() => setMode("response")}
-            >
-              AI response
             </button>
           </div>
         </div>

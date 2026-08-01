@@ -18,7 +18,7 @@ export default function Preview({files}) {
       <iframe
         title="Generated website preview"
         srcDoc={page}
-        sandbox="allow-scripts"
+        sandbox="allow-scripts allow-forms"
         className="h-[520px] w-full bg-white"
       />
     </section>

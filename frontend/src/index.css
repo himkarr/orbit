@@ -2,4 +2,4 @@
 
 @theme { --font-sans: "Manrope", Arial, sans-serif; --font-mono: "DM Mono", monospace; }
 
-body { margin: 0; min-width: 320px; background: #090909; }
+body { margin: 0; min-width: 320px; background: rgb(33, 33, 33); }

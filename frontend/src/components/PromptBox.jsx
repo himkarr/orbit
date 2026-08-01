@@ -39,7 +39,7 @@ export default function PromptBox({ onGenerate }) {
         value={prompt}
         onChange={(event) => setPrompt(event.target.value)}
         placeholder={placeholder}
-        className="min-h-28 w-full resize-none bg-transparent p-2 text-sm text-white outline-none"
+        className="min-h-18 w-full resize-none bg-transparent p-1 text-sm text-white outline-none"
       />
       <div className="flex items-center justify-between border-t border-neutral-800 pt-3">
         <span className="text-xs text-neutral-500">Ready to build</span>

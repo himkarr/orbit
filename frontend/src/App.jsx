@@ -16,6 +16,7 @@ export default function App() {
   const [screen, setScreen] = useState("home");
   const [session, setSession] = useState(getSession);
   const [prompt, setPrompt] = useState("");
+  const [projectId, setProjectId] = useState(null);
   const authenticate = (data) => {
     localStorage.setItem("orbit-session", JSON.stringify(data));
     setSession(data);
@@ -23,7 +24,12 @@ export default function App() {
   };
   const generate = (value) => {
     setPrompt(value);
+    setProjectId(null);
     setScreen(session ? "generator" : "login");
+  };
+  const openProject = (id) => {
+    setProjectId(id);
+    setScreen("generator");
   };
   const signOut = () => {
     localStorage.removeItem("orbit-session");
@@ -36,13 +42,14 @@ export default function App() {
     return <Register onNavigate={setScreen} onSuccess={authenticate} />;
   if (screen === "generator")
     return (
-      <Generator prompt={prompt} session={session} onNavigate={setScreen} />
+      <Generator prompt={prompt} projectId={projectId} session={session} onNavigate={setScreen} />
     );
   return (
     <Home
       session={session}
       onNavigate={setScreen}
       onGenerate={generate}
+      onOpenProject={openProject}
       onSignOut={signOut}
     />
   );

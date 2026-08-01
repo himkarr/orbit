@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import PromptBox from "../components/PromptBox";
-export default function Home({session, onNavigate, onGenerate, onSignOut}) {
+import History from "./History";
+export default function Home({session, onNavigate, onGenerate, onOpenProject, onSignOut}) {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
       <Navbar session={session} onNavigate={onNavigate} onSignOut={onSignOut} />
@@ -13,6 +14,7 @@ export default function Home({session, onNavigate, onGenerate, onSignOut}) {
         </p>
         <PromptBox onGenerate={onGenerate} />
       </section>
+      {session && <History token={session.token} onOpenProject={onOpenProject} />}
     </main>
   );
 }
