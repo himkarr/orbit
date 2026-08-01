@@ -8,6 +8,7 @@ const projectRoutes = require("./routes/project");
 const protect = require("./middleware/authMiddleware");
 const Project = require("./models/Project");
 const buildMessages = require("./utils/promptBuilder");
+const { responseFormat } = require("./utils/systemPrompt");
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -39,6 +40,7 @@ app.post("/api/generate", protect, async (req, res, next) => {
     const stream = await groq.chat.completions.create({
       model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
       messages: buildMessages(prompt),
+      resopnse_format: responseFormat,
       temperature: 0.4,
       max_completion_tokens: 4096,
       stream: true,

@@ -7,22 +7,35 @@ async function readJson(response) {
 }
 
 export function signIn(values) {
-  return fetch(`${API_URL}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) }).then(readJson);
+  return fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(values),
+  }).then(readJson);
 }
 
 export function register(values) {
-  return fetch(`${API_URL}/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) }).then(readJson);
+  return fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(values),
+  }).then(readJson);
 }
 
-export async function streamGeneration({ prompt, token, onChunk, onSaved }) {
+export async function streamGeneration({prompt, token, onChunk, onSaved}) {
   const response = await fetch(`${API_URL}/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ prompt, title: prompt.slice(0, 50) }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({prompt, title: prompt.slice(0, 50)}),
   });
 
-  if (!response.ok) throw new Error((await response.json()).error || "Generation failed.");
-  if (!response.body) throw new Error("Streaming is not supported by this browser.");
+  if (!response.ok)
+    throw new Error((await response.json()).error || "Generation failed.");
+  if (!response.body)
+    throw new Error("Streaming is not supported by this browser.");
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -36,9 +49,9 @@ export async function streamGeneration({ prompt, token, onChunk, onSaved }) {
   };
 
   while (true) {
-    const { value, done } = await reader.read();
+    const {value, done} = await reader.read();
     if (done) break;
-    buffer += decoder.decode(value, { stream: true });
+    buffer += decoder.decode(value, {stream: true});
     const events = buffer.split("\n\n");
     buffer = events.pop();
     events.forEach(handleEvent);
