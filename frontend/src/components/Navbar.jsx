@@ -1,6 +1,6 @@
 export default function Navbar({session, onNavigate, onSignOut}) {
   return (
-    <nav className="sticky top-0 z-10 border-neutral-800 bg-neutral-950/85 backdrop-blur">
+    <nav className="sticky top-0 z-10 bg-transparent">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <button
           onClick={() => onNavigate("home")}
