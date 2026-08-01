@@ -3,7 +3,6 @@ const Groq = require("groq-sdk");
 const Project = require("../models/Project");
 const protect = require("../middleware/authMiddleware");
 const buildMessages = require("../utils/promptBuilder");
-const {responseFormat} = require("../utils/systemPrompt");
 
 const router = express.Router();
 
@@ -31,7 +30,6 @@ router.post("/", protect, async (req, res) => {
       // model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
       model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
       messages: buildMessages(prompt),
-      response_format: responseFormat,
       temperature: 0.4,
       max_completion_tokens: 5000,
       stream: true,
@@ -44,6 +42,8 @@ router.post("/", protect, async (req, res) => {
       code += content;
       res.write(`data: ${JSON.stringify({type: "chunk", content})}\n\n`);
     }
+
+    console.log("LLM response:\n", code);
 
     const project = await Project.create({
       user: req.user._id,
