@@ -14,9 +14,6 @@ export default function Navbar({session, onNavigate, onSignOut}) {
         {session ? (
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 sm:flex">
-              <span className="grid size-7 place-items-center rounded-full bg-neutral-800 text-xs font-bold text-neutral-200">
-                {session.user.username.slice(0, 1).toUpperCase()}
-              </span>
               <span className="text-xs text-neutral-400">{session.user.username}</span>
             </div>
             <button
