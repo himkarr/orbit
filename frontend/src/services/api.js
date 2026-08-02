@@ -53,9 +53,10 @@ export async function deleteProject(id, token) {
   if (!response.ok) throw new Error((await response.json()).error || "Could not delete project.");
 }
 
-export async function streamGeneration({prompt, token, onChunk, onSaved}) {
+export async function streamGeneration({prompt, token, onChunk, onSaved, signal}) {
   const response = await fetch(`${API_URL}/generate`, {
     method: "POST",
+    signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

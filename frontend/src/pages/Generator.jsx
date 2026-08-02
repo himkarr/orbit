@@ -37,47 +37,56 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
   useEffect(() => {
     let cancelled = false;
     let generatedCode = "";
+    const controller = new AbortController();
 
-    if (projectId) {
-      getProject(projectId, session.token)
-        .then(({project: savedProject}) => {
-          if (cancelled) return;
-          setProject(savedProject);
-          setRawCode(savedProject.code);
-          setFiles(getFiles(savedProject.code));
-        })
-        .catch((requestError) => !cancelled && setError(requestError.message))
-        .finally(() => !cancelled && setStreaming(false));
+    // Deferring the request lets StrictMode's development-only effect replay
+    // clean up before a stream is opened.
+    const startRequest = () => {
+      if (projectId) {
+        getProject(projectId, session.token)
+          .then(({project: savedProject}) => {
+            if (cancelled) return;
+            setProject(savedProject);
+            setRawCode(savedProject.code);
+            setFiles(getFiles(savedProject.code));
+          })
+          .catch((requestError) => !cancelled && setError(requestError.message))
+          .finally(() => !cancelled && setStreaming(false));
+        return;
+      }
 
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    streamGeneration({
-      prompt,
-      token: session.token,
-      onChunk: (chunk) => {
-        generatedCode += chunk;
-        if (!cancelled) setRawCode((code) => code + chunk);
-      },
-      onSaved: (savedProject) => !cancelled && setProject(savedProject),
-    })
-      .then(() => {
-        if (cancelled) return;
-        try {
-          setFiles(getFiles(generatedCode));
-        } catch {
-          setError(
-            "The generated response was not a valid three-file project.",
-          );
-        }
+      streamGeneration({
+        prompt,
+        token: session.token,
+        signal: controller.signal,
+        onChunk: (chunk) => {
+          generatedCode += chunk;
+          if (!cancelled) setRawCode((code) => code + chunk);
+        },
+        onSaved: (savedProject) => !cancelled && setProject(savedProject),
       })
-      .catch((streamError) => !cancelled && setError(streamError.message))
-      .finally(() => !cancelled && setStreaming(false));
+        .then(() => {
+          if (cancelled) return;
+          try {
+            setFiles(getFiles(generatedCode));
+          } catch {
+            setError(
+              "The generated response was not a valid three-file project.",
+            );
+          }
+        })
+        .catch((streamError) => {
+          if (!cancelled && streamError.name !== "AbortError")
+            setError(streamError.message);
+        })
+        .finally(() => !cancelled && setStreaming(false));
+    };
+    const timer = window.setTimeout(startRequest, 0);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
+      controller.abort();
     };
   }, [prompt, projectId, session.token]);
 

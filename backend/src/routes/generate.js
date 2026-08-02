@@ -23,6 +23,12 @@ router.post("/", protect, async (req, res) => {
   res.flushHeaders();
 
   let code = "";
+  let clientDisconnected = false;
+  const controller = new AbortController();
+  res.on("close", () => {
+    clientDisconnected = !res.writableEnded;
+    if (clientDisconnected) controller.abort();
+  });
 
   try {
     const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
@@ -33,7 +39,7 @@ router.post("/", protect, async (req, res) => {
       temperature: 0.4,
       max_completion_tokens: 5000,
       stream: true,
-    });
+    }, {signal: controller.signal});
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
@@ -42,6 +48,8 @@ router.post("/", protect, async (req, res) => {
       code += content;
       res.write(`data: ${JSON.stringify({type: "chunk", content})}\n\n`);
     }
+
+    if (clientDisconnected) return;
 
     console.log("LLM response:\n", code);
 
@@ -63,6 +71,7 @@ router.post("/", protect, async (req, res) => {
     );
     return res.end();
   } catch (error) {
+    if (clientDisconnected || error.name === "AbortError") return;
     console.error("Generation failed:", error.message);
     res.write(
       `data: ${JSON.stringify({
