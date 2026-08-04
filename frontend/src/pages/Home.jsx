@@ -7,10 +7,9 @@ export default function Home({session, onNavigate, onGenerate, onOpenProject, on
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
       <Navbar session={session} onNavigate={onNavigate} onSignOut={onSignOut} />
       <section className="isolate overflow-hidden">
-        {/* relative */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 bg-cover opacity-100"
+          className="absolute inset-0 -z-10 bg-cover opacity-55"
           style={{backgroundImage: `url(${backgroundImage})`, backgroundPosition: "center -80px"}}
         />
         <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-5 pb-20 pt-28 text-center">

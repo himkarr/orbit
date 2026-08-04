@@ -159,9 +159,11 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
           onClick={() => onNavigate("home")}
           className="flex items-center gap-2 font-bold tracking-tight"
         >
-          <span className="grid size-7 place-items-center rounded-full border border-white text-[11px]">
-            O
-          </span>
+          <img
+            src="/src/assets/logo.png"
+            alt="Orbit Logo"
+            className="h-8 w-8"
+          />
           <span className="hidden sm:inline">Orbit</span>
         </button>
 
@@ -240,7 +242,9 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
             <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">
               Files
             </span>
-            <span className="text-[11px] text-neutral-600">{fileNames.length}</span>
+            <span className="text-[11px] text-neutral-600">
+              {fileNames.length}
+            </span>
           </div>
           <nav className="flex-1 overflow-y-auto p-2">
             {fileNames.map((filename) => {
@@ -296,7 +300,9 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
                 <Preview files={files} />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-neutral-600">
-                  {streaming ? "Waiting for preview..." : "Preview will appear here."}
+                  {streaming
+                    ? "Waiting for preview..."
+                    : "Preview will appear here."}
                 </div>
               )}
             </div>
