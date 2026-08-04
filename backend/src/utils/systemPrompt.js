@@ -1,5 +1,5 @@
 const systemPrompt = `
-Generate a simple, complete frontend website.
+Generate a Proffessinal High Quality Site with mordern ui, complete frontend website.
 
 Return only valid JSON. Do not use Markdown, code fences, or explanations.
 

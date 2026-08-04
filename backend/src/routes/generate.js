@@ -33,8 +33,8 @@ router.post("/", protect, async (req, res) => {
   try {
     const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
     const stream = await groq.chat.completions.create({
-      model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
-      // model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
+      // model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
       messages: buildMessages(prompt),
       temperature: 0.4,
       max_completion_tokens: 7000,

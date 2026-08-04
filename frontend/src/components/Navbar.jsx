@@ -6,15 +6,19 @@ export default function Navbar({session, onNavigate, onSignOut}) {
           onClick={() => onNavigate("home")}
           className="flex items-center gap-2 font-bold tracking-tight text-white"
         >
-          <span className="grid size-8 place-items-center rounded-lg bg-white text-sm text-black">
-            O
-          </span>
+          <img
+            src="/src/assets/logo.png"
+            alt="Orbit Logo"
+            className="h-8 w-8"
+          />
           <span>Orbit</span>
         </button>
         {session ? (
           <div className="flex items-center gap-3">
             <div className="hidden items-center gap-2 sm:flex">
-              <span className="text-xs text-neutral-400">{session.user.username}</span>
+              <span className="text-xs text-neutral-400">
+                {session.user.username}
+              </span>
             </div>
             <button
               onClick={onSignOut}
