@@ -1,27 +1,44 @@
-export default function CodeEditor({filename, code, streaming}) {
-  const lines = code ? code.split("\n") : [];
+import Editor from "@monaco-editor/react";
+import "./MonacoSetup";
+
+function languageFor(filename) {
+  const ext = (filename || "").split(".").pop();
+  if (ext === "js") return "javascript";
+  if (ext === "css") return "css";
+  if (ext === "html") return "html";
+  if (ext === "json") return "json";
+  return "plaintext";
+}
+
+export default function CodeEditor({filename, code, onChange, editable = false, streaming}) {
   return (
-    <section className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950">
-      <div className="flex h-11 items-center justify-between border-b border-neutral-800 px-4 font-mono text-[11px] text-neutral-500">
+    <section className="flex h-full min-h-0 flex-col bg-neutral-950">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-neutral-800 px-4 font-mono text-[11px] text-neutral-500">
         <span>{filename}</span>
         <span className="flex items-center gap-2">
           <i
             className={`size-1.5 rounded-full ${streaming ? "bg-white animate-pulse" : "bg-neutral-600"}`}
           />
-          {streaming ? "streaming" : "complete"}
+          {streaming ? "streaming" : editable ? "editing" : "complete"}
         </span>
       </div>
-      <pre className="min-h-[420px] overflow-auto p-4 font-mono text-xs leading-6 text-neutral-200">
-        {lines.map((line, index) => (
-          <div className="grid grid-cols-[36px_1fr]" key={`${line}-${index}`}>
-            <span className="select-none text-right text-neutral-700">
-              {index + 1}
-            </span>
-            <code className="pl-4 whitespace-pre-wrap break-words">{line}</code>
-          </div>
-        ))}
-        {streaming && <span className="ml-10 animate-pulse text-white">|</span>}
-      </pre>
+      <div className="min-h-0 flex-1">
+        <Editor
+          height="100%"
+          language={languageFor(filename)}
+          value={code}
+          theme="vs-dark"
+          onChange={editable ? (value) => onChange(value || "") : undefined}
+          options={{
+            readOnly: !editable,
+            fontSize: 13,
+            minimap: {enabled: false},
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            wordWrap: "on",
+          }}
+        />
+      </div>
     </section>
   );
 }
