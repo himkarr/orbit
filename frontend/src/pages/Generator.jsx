@@ -1,18 +1,20 @@
 import {useEffect, useState} from "react";
 import {
   Braces,
+  Code2,
+  Download,
+  Eye,
   FileCode,
   FileText,
   Globe,
   Pencil,
   Save,
-  Sparkles,
   X,
 } from "lucide-react";
 import CodeEditor from "../components/CodeEditor";
 import Preview from "../components/Preview";
 import buildPage from "../components/buildPage";
-import {getProject, streamGeneration, updateProject} from "../services/api";
+import {exportProject, getProject, streamGeneration, updateProject} from "../services/api";
 
 const fileNames = ["index.html", "style.css", "script.js"];
 
@@ -49,7 +51,7 @@ function buildRawCode(files) {
 }
 
 export default function Generator({prompt, projectId, session, onNavigate}) {
-  const [mode, setMode] = useState("editor"); // "editor" | "response"
+  const [mode, setMode] = useState("editor"); // "editor" | "preview"
   const [rawCode, setRawCode] = useState("");
   const [files, setFiles] = useState(null);
   const [activeFile, setActiveFile] = useState("index.html");
@@ -115,7 +117,18 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
     };
   }, [prompt, projectId, session.token]);
 
-  const displayedCode = files ? files[activeFile] : rawCode;
+  const isResponseFile = activeFile === "ai-response.json";
+  const displayedCode = isResponseFile
+    ? rawCode
+    : files
+      ? files[activeFile]
+      : rawCode;
+  const target = project?.id || projectId;
+
+  const selectFile = (filename) => {
+    setActiveFile(filename);
+    setMode("editor");
+  };
 
   const handleFileChange = (value) =>
     setFiles((current) =>
@@ -123,7 +136,6 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
     );
 
   const handleSave = async () => {
-    const target = project?.id || projectId;
     if (!target || !files) return;
     setSaving(true);
     setError("");
@@ -150,7 +162,22 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
     window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
-  const FileIcon = fileIcons[activeFile] || FileCode;
+  const handleExport = async () => {
+    if (!target) return;
+    try {
+      const blob = await exportProject(target, session.token);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${project?.title || "project"}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (exportError) {
+      setError(exportError.message);
+    }
+  };
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-neutral-950 text-neutral-100">
@@ -175,12 +202,13 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
 
         <div className="flex shrink-0 items-center gap-2">
           <button
-            onClick={() => setMode(mode === "editor" ? "response" : "editor")}
-            className="hidden items-center gap-1.5 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:text-white sm:flex"
-            title="Toggle between the AI response and the split editor view"
+            onClick={() => setMode(mode === "editor" ? "preview" : "editor")}
+            disabled={!files || streaming}
+            className="hidden items-center gap-1.5 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:text-white disabled:opacity-40 sm:flex"
+            title={mode === "editor" ? "View the site without the code editor" : "Back to the editor view"}
           >
-            <Sparkles size={14} />
-            {mode === "editor" ? "LLM Res." : "Editor"}
+            {mode === "editor" ? <Eye size={14} /> : <Code2 size={14} />}
+            {mode === "editor" ? "Preview" : "Editor"}
           </button>
 
           {editing ? (
@@ -222,10 +250,12 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
           </button>
 
           <button
-            onClick={() => onNavigate("home")}
-            className="rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:border-neutral-500 hover:text-white"
+            onClick={handleExport}
+            disabled={!target || streaming}
+            className="flex items-center gap-1.5 rounded-md border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 hover:border-neutral-500 hover:text-white disabled:opacity-40"
           >
-            Create New
+            <Download size={14} />
+            Export
           </button>
         </div>
       </header>
@@ -252,7 +282,7 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
               return (
                 <button
                   key={filename}
-                  onClick={() => setActiveFile(filename)}
+                  onClick={() => selectFile(filename)}
                   className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 font-mono text-xs ${activeFile === filename ? "bg-neutral-800 text-white" : "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"}`}
                 >
                   <Icon size={14} className="shrink-0 text-neutral-500" />
@@ -263,33 +293,47 @@ export default function Generator({prompt, projectId, session, onNavigate}) {
                 </button>
               );
             })}
+            <p className="px-2.5 pb-1 pt-3 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+              LLM Response
+            </p>
+            <button
+              onClick={() => selectFile("ai-response.json")}
+              className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 font-mono text-xs ${activeFile === "ai-response.json" ? "bg-neutral-800 text-white" : "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"}`}
+            >
+              <Braces size={14} className="shrink-0 text-neutral-500" />
+              <span className="truncate">ai-response.json</span>
+            </button>
           </nav>
           <div className="border-t border-neutral-800 p-3">
             <p className="text-[11px] text-neutral-500">Tip</p>
             <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
               {editing
                 ? "Click Save to keep your edits."
-                : "Hit Edit to make changes, Publish to open the live site."}
+                : "Hit Edit to make changes, Export to download the code."}
             </p>
           </div>
         </aside>
 
-        {mode === "response" ? (
-          <section className="min-w-0 flex-1">
-            <CodeEditor
-              filename="ai-response.json"
-              code={rawCode}
-              streaming={streaming}
-            />
+        {mode === "preview" ? (
+          <section className="min-h-0 flex-1">
+            {files ? (
+              <Preview files={files} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-neutral-600">
+                {streaming
+                  ? "Waiting for preview..."
+                  : "Preview will appear here."}
+              </div>
+            )}
           </section>
         ) : (
-          <section className="flex min-w-0 flex-1 flex-col lg:flex-row">
+          <section className="flex min-h-0 flex-1 flex-col lg:flex-row">
             <div className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-neutral-800 lg:border-b-0 lg:border-r">
               <div className="min-h-0 flex-1">
                 <CodeEditor
-                  filename={files ? activeFile : "generating.json"}
+                  filename={isResponseFile ? "ai-response.json" : files ? activeFile : "generating.json"}
                   code={displayedCode}
-                  editable={editing}
+                  editable={editing && !isResponseFile}
                   onChange={handleFileChange}
                   streaming={streaming}
                 />

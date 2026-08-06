@@ -53,6 +53,13 @@ export async function deleteProject(id, token) {
   if (!response.ok) throw new Error((await response.json()).error || "Could not delete project.");
 }
 
+export async function exportProject(id, token) {
+  const response = await projectRequest(`/${id}/export`, token);
+  if (!response.ok)
+    throw new Error((await response.json()).error || "Export failed.");
+  return response.blob();
+}
+
 export async function streamGeneration({prompt, token, onChunk, onSaved, signal}) {
   const response = await fetch(`${API_URL}/generate`, {
     method: "POST",

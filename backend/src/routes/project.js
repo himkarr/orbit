@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Project = require("../models/Project");
 const protect = require("../middleware/authMiddleware");
+const archiverPromise = import("archiver");
 
 const router = express.Router();
 router.use(protect);
@@ -81,6 +82,47 @@ router.patch("/:id", async (req, res, next) => {
     );
     if (!project) return res.status(404).json({error: "Project not found."});
     return res.json({project: projectFields(project)});
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/:id/export", async (req, res, next) => {
+  try {
+    if (!validId(req.params.id))
+      return res.status(404).json({error: "Project not found."});
+    const project = await Project.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+    if (!project) return res.status(404).json({error: "Project not found."});
+
+    let generatedFiles;
+    try {
+      generatedFiles = JSON.parse(project.code).files;
+      if (!Array.isArray(generatedFiles)) throw new Error("Not a file list.");
+    } catch {
+      return res.status(400).json({error: "Project code is invalid."});
+    }
+
+    const baseName =
+      project.title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") ||
+      "project";
+
+    res.set({
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="${baseName}.zip"`,
+    });
+
+    const {ZipArchive} = await archiverPromise;
+    const archive = new ZipArchive({zlib: {level: 9}});
+    archive.on("error", (error) => next(error));
+    archive.pipe(res);
+    generatedFiles.forEach(({filename, content}) =>
+      archive.append(Buffer.from(content), {name: filename}),
+    );
+    await archive.finalize();
+    return res.end();
   } catch (error) {
     return next(error);
   }
